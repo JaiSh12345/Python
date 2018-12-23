@@ -1,3 +1,4 @@
+from enum import Enum
 import pygame
 import random
 import time
@@ -65,13 +66,13 @@ class Box:
 	grid = [[int(not(col%(CELLS[0]+1))) for col in range(CELLS[0]+2)] for row in range(CELLS[1]-1)]
 	# Set the last row 1 as well to create a buffer
 	grid.append([1 for col in range(CELLS[0]+2)])
-	print(grid)
+	#print(grid)
 	CELL_SIZE = WIDTH*7//(10*CELLS[0])	#Width of gamescreen = WIDTH*7//10
 	LEFT = -CELL_SIZE 			#To align second column with edge of screen
 	TOP = HEIGHT*3//20
 	def __init__(self, color):
 		self.is_active = True
-		self.shape = pygame.surface.Surface((Box.CELL_SIZE,Box.CELL_SIZE))
+		self.shape = pygame.surface.Surface((Box.CELL_SIZE-BUTTON_PAD,Box.CELL_SIZE-BUTTON_PAD))
 		self.shape.fill(color)
 
 	def place(self, row, col):
@@ -114,9 +115,10 @@ class Shape:
 		  'arrow': [(CENTER-1,TOP),(CENTER,TOP),(CENTER,TOP+1),(CENTER+1,TOP)]}
 
 	def __init__(self,shape_name,color):
-		self.color = color
-		self.is_active = True
-		self.blocks = []
+		self.color = color 		# The color of all the blocks in the shape
+		self.is_active = True		# As long as bottom is not grounded, is active
+		self.has_fallen = False		# If a block does not fall, it means screen is 
+		self.blocks = []		# full, signal game over
 		for pos in Shape.shapes[shape_name]:
 			Box.grid[pos[1]][pos[0]] = Box(color)
 			Box.grid[pos[1]][pos[0]].place(pos[1], pos[0])
@@ -126,33 +128,39 @@ class Shape:
 		pass
 
 	def fall(self):
-		prev_b = self.blocks[-1]
 		for block in self.blocks:
-			#If there is block below (0,1) which is not of this shape
-			if block.move(DOWN) == False and prev_b.row-block.row != 1:
+			if block.down != 0 and block.down not in self.blocks:
 				self.is_active = False
-			prev_b = block
-		if self.is_active == False:
-			for block in self.blocks:
-				block.is_active = False
-		#for i in Box.grid:
-		#	print(i)
-		#print('AND',self.is_active)
-	def getLeft(self):
-		return self.blocks[-1].col
-	def getRight(self):
-		return self.blocks[0].col
-	def shift(self, direction):
+				break
 		for block in self.blocks:
-			block.move(direction)
+			if self.is_active:
+				block.move(DOWN)
+				self.has_fallen = True
+			else:	block.is_active = False
+
+	def shiftLeft(self):
+		for block in self.blocks:
+			if block.left != 0 and block.left not in self.blocks:
+				break
+		else:
+			for block in self.blocks[::-1]:
+				block.move(LEFT)
+
+	def shiftRight(self):
+		for block in self.blocks:
+			if block.right != 0 and block.right not in self.blocks:
+				break
+		else:
+			for block in self.blocks:
+				block.move(RIGHT)
 
 	def draw(self,screen):
 		for block in self.blocks:
 			block.draw(screen)
 
-curT = Box(random.choice(colors))#Shape(random.choice( list(Shape.shapes.keys()) ), random.choice(colors))
+curT = Shape(random.choice( list(Shape.shapes.keys()) ), random.choice(colors))
 nexT = random.choice( list(Shape.shapes.keys()) )
-curT.place(0,5)
+#curT.place(0,5)
 
 class Button:
 	def __init__(self,text,backcolor,edgecolor,size = 'small'):
@@ -199,6 +207,13 @@ class Button:
 	
 	def isHovered(self, x1, y1):
 		return x1 > self.x1 and x1 < self.x2 and y1 > self.y1 and y1 < self.y2
+class Status(Enum):
+	RUNNING = 2
+	WON = 1
+	LOST = 0
+	
+class Game:
+	status = Status.RUNNING
 
 def draw_stats(screen, score = 0, time = 0, points = 0, level = 1, max_points = 10):
 	screen.blit(gamestats,(0,0))
@@ -226,19 +241,21 @@ def draw_menu(screen, color_now, shape = None):
 def draw_gamescreen(screen, shape, canFall):
 	screen.blit(gameback,(0,HEIGHT//5))
 	if shape.is_active:
-		if canFall: shape.move(DOWN)
-			#print('FALLING',shape.getLeft(),shape.getRight())
-	#else:
-	#	deactivated.extend([block for block in shape.blocks])
-	#	global curT
-	#	global nexT
-	#	global spacebar_was_pressed
-	#	curT = Shape(nexT, random.choice(colors))
-	#	nexT = random.choice( list(Shape.shapes.keys()) )
-	#	spacebar_was_pressed = False
-	#
-	#for block in deactivated:
-	#	block.draw(screen)
+		if canFall: shape.fall()
+		#print('FALLING',shape.getLeft(),shape.getRight())
+	else:
+		if shape.has_fallen is False:
+			Game.status = Status.LOST
+		deactivated.extend([block for block in shape.blocks])
+		global curT
+		global nexT
+		global spacebar_was_pressed
+		curT = Shape(nexT, random.choice(colors))
+		nexT = random.choice( list(Shape.shapes.keys()) )
+		spacebar_was_pressed = False
+	
+	for block in deactivated:
+		block.draw(screen)
 	shape.draw(screen)
 
 pauseButton = Button('Pause',(200,200,200,255), (100,100,100,255), 'medium')
@@ -249,19 +266,19 @@ playButton.place(WIDTH*37//50,HEIGHT*3//5,WIDTH*47//50,HEIGHT*7//10)
 quitButton.place(WIDTH*37//50,HEIGHT*4//5,WIDTH*47//50,HEIGHT*9//10)
 spacebar_was_pressed = False
 deactivated = []
-looping = True
-while looping:
+#looping = True
+while Game.status == Status.RUNNING:
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT:
-			looping = False
+			Game.status = Status.LOST
 		#Take player controls only if game is NOT PAUSED
 		if event.type == pygame.KEYDOWN and not pauseButton.is_clicked:
 			if event.key == pygame.K_SPACE:
 				spacebar_was_pressed = True
-			elif event.key == pygame.K_LEFT and curT.left == 0:
-				curT.move(LEFT)			#(-1,0)
-			elif event.key == pygame.K_RIGHT and curT.right == 0:
-				curT.move(RIGHT)		#( 1,0)
+			elif event.key == pygame.K_LEFT:# and curT.left == 0:
+				curT.shiftLeft()
+			elif event.key == pygame.K_RIGHT:# and curT.right == 0:
+				curT.shiftRight()
 		#if event.type == pygame.MOUSEBUTTONDOWN:
 
 	#Check if the player pressed the quit button
@@ -269,7 +286,7 @@ while looping:
 	quitButton.draw(screen)
 	#If YES, QUIT the game
 	if quitButton.is_clicked:
-		looping = False
+		Game.status = Status.LOST
 
 	#If the game is paused, check if the player presses PLAY!
 	if pauseButton.is_clicked and not playButton.is_clicked:
