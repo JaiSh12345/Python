@@ -10,3 +10,14 @@ Just a test of github's webhooks. Using Push.
 	],
 	"Fixes" : "Changed django webhook url to 'hooks/handle_github'"
 }
+2nd_Test = {
+	"Status": [
+		"Success", {
+			"Payload" : "text/JSON",
+			"Method" : "POST",
+			"URL" : "//hooks/handle_github",
+			"Response" : "202 Accepted",
+			"Timestamp" : "28 Jan 2019 10:55:42"
+		}
+	"Fixes" : "None"			
+}
