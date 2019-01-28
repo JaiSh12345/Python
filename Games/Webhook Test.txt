@@ -1,1 +1,12 @@
 Just a test of github's webhooks. Using Push.
+1st_Test = {
+	"Status": [
+		"Failed", {
+			"Page Error" : "505 Bad Gateway",
+			"Server Error" : "404 Not found",
+			"Django Error" : "Could not find '/hooks/handle_github'",
+			"Timestamp" : "28 Jan 2019 10:42:54"
+		}
+	],
+	"Fixes" : "Changed django webhook url to 'hooks/handle_github'"
+}
