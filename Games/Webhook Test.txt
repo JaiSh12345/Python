@@ -19,5 +19,6 @@ Just a test of github's webhooks. Using Push.
 			"Response" : "202 Accepted",
 			"Timestamp" : "28 Jan 2019 10:55:42"
 		}
+	],
 	"Fixes" : "None"			
 }
