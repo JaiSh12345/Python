@@ -33,3 +33,14 @@ Just a test of github's webhooks. Using Push.
 	],
 	"Fixes" : "Started django server with 'python manage.py runserver'"
 }
+4th_test = {
+	"Status" : [
+		"Failed", {
+			"Page Error" : "500 Internal Server Error",
+			"Server Error" : "Runtime Error",
+			"Django Error" : "URL does not end in /",
+			"Timestamp" : "30 Jan 2019 20:18:55"
+		}
+	],
+	"Fixes" : "Appended / to github webhook URL."
+}
