@@ -2,7 +2,7 @@ Just a test of github's webhooks. Using Push.
 1st_Test = {
 	"Status": [
 		"Failed", {
-			"Page Error" : "505 Bad Gateway",
+			"Page Error" : "502 Bad Gateway",
 			"Server Error" : "404 Not found",
 			"Django Error" : "Could not find '/hooks/handle_github'",
 			"Timestamp" : "28 Jan 2019 10:42:54"
@@ -23,6 +23,13 @@ Just a test of github's webhooks. Using Push.
 	"Fixes" : "None"			
 }
 3rd_test = {
-	"Status" : "Awaited",
-	"Fixes"  : "None"
+	"Status" : [
+		"Failed", {
+			"Page Error" : "502 Bad Gateway",
+			"Server Error" : "None",
+			"Django Error" : "None",
+			"Timestamp" : "30 Jan 2019 20:10:23"
+		}
+	],
+	"Fixes" : "Started django server with 'python manage.py runserver'"
 }
