@@ -44,3 +44,14 @@ Just a test of github's webhooks. Using Push.
 	],
 	"Fixes" : "Appended / to github webhook URL."
 }
+5th_test = {
+	"Status" : [
+		"Failed", {
+			"Page Error" : "403 Forbidden",
+			"Server Error" : "Forbidden",
+			"Django Error" : "CSRF cookie not set",
+			"Timestamp" : "30 Jan 2019 20:24:17"
+		}
+	],
+	"Fixes" : "added @csrf_exempt decorator to view function handle_event."
+}
